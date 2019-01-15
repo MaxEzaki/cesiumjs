@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Folder id="results">
+	<name>新宿区上落合１丁目</name>
+	<Placemark id="1.2.1">
+		<name>〒161-0034 東京都新宿区上落合１丁目</name>
+		<address>〒161-0034 東京都新宿区上落合</address>
+		<snippet>〒161-0034 東京都新宿区上落合</snippet>
+		<description><![CDATA[<!DOCTYPE html><html lang="ja"> <head> <style>body{font-family:Roboto,Arial,sans-serif}.DiVP2e{background-color:#fafafa;border-radius:2px;bottom:2px;left:2px;position:absolute;right:2px;top:2px}.X6ZKdd{font-size:18px;font-weight:bold;line-height:25px;margin-bottom:5px}.gr0Qde{font-size:14px;font-weight:300;line-height:18px;margin-bottom:5px}.Nqfqlb{font-size:16px;line-height:normal;color:#e7711b;margin-right:5px}.review-count{font-size:12px;line-height:normal}.OTInGb,.hSSRhf,.xDQDq{display:inline-block;background-image:url('//maps.gstatic.com/tactile/omnibox/star-20130618.png');width:13px;height:13px;background-size:36px 12px}.hSSRhf{background-position:-13px 0}.xDQDq{background-position:-25px 0}.Qfo35d{font-size:12px;margin-bottom:2px}.gs8uRd{font-size:14px;margin-bottom:2px}.JByhjc{font-size:14px;margin-bottom:2px;margin-top:5px}.iWlmL{font-size:14px;margin-bottom:2px;margin-top:5px}.OYCkv{font-size:14px;margin-bottom:2px;margin-top:5px}.VUd1Hd{font-size:14px;margin-bottom:2px}.jK1Lre{font-size:14px;padding:6px 15px 2px;margin-bottom:5px}.PQWkDb{overflow:hidden;display:inline-block;vertical-align:top;position:relative}.giiMnc{font-size:10px;font-style:italic}.ncIaof{font-weight:600}</style> <meta content="width=device-width, initial-scale=1" name="viewport"> </head> <body> <div class="DiVP2e"> <div class="tg0Ii"> <div class="PQWkDb"> <img alt="〒161-0034 東京都新宿区上落合１丁目" src="https://geo0.ggpht.com/cbk?panoid=nkw9bgHwY0v4lhWz_LCLaQ&amp;output=thumbnail&amp;cb_client=search.TACTILE.gps&amp;thumb=2&amp;w=408&amp;h=306&amp;yaw=46.500008&amp;pitch=-2.9338646&amp;thumbfov=100" width="100%"> </div> </div> <br> <div> <span class="X6ZKdd">〒161-0034 東京都新宿区上落合１丁目</span>  <span class="Qfo35d"></span> </div> <div class="gr0Qde">  </div> <div class="JByhjc">   </div>  <div class="OYCkv"></div> <br>  <div class="VUd1Hd"></div> <div class="kZ1n7c"> <a href="#" target="_blank">  </a> </div> <br>  <span class="reviews"> <a href="#" target="_blank"> <span class="review-count"></span></a> </span> <div class="Hb2bEc">  </div> </div> </body> </html>]]></description>
+		<styleUrl>#geocode</styleUrl>
+		<ExtendedData>
+			<Data name="placepageUri">
+				<value>https://www.google.com/earth/rpc/entity?lat=35.713448199999995&amp;lng=139.69263105000002&amp;fid=0x60188d4ae6f16785:0x7e2f2a978d4ca543&amp;q=〒161-0034 東京都新宿区上落合１丁目&amp;hl=ja&amp;gl=jp&amp;client=earth-client&amp;cv=7.3.2.5495&amp;useragent=GoogleEarth/7.3.2.5495(Macintosh;Mac OS X (10.14.2);ja;kml:2.2;client:Pro;type:default)</value>
+			</Data>
+		</ExtendedData>
+		<MultiGeometry>
+			<Point>
+				<coordinates>139.6909193,35.7132819,0</coordinates>
+			</Point>
+			<LinearRing>
+				<coordinates>
+					139.687366726401,35.7106174698007,0 139.687366726401,35.7159463301993,0 139.694471873599,35.7159463301993,0 139.694471873599,35.7106174698007,0 139.687366726401,35.7106174698007,0 
+				</coordinates>
+			</LinearRing>
+		</MultiGeometry>
+	</Placemark>
+</Folder>
+</kml>
