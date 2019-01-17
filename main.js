@@ -4,7 +4,37 @@
   // トークンは t-ezaki@sensyn-robotics.com アカウント作成後、https://cesium.com/ にて取得
   Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMmI1ZjAzNi02MzhhLTRlMDAtODczNi01ZjhlMmM2YjZlNmMiLCJpZCI6NjgwNiwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0NzUyOTE4MX0.T4ABgbi_EFC-fCFaoNoCSq79oLRXQrHEfnjdeBvWA2E';
 
-  var viewer = new Cesium.Viewer("cesium");
+  // 公式だと 'container' と書かれてるけど、それだと動作しなかった。
+  // 参照 [https://cesium.com/content/cesium-world-terrain/]
+  var viewer = new Cesium.Viewer('cesium', {
+    terrainProvider : Cesium.createWorldTerrain({
+      requestWaterMask : true,
+      requestVertexNormals : true
+    })
+  });
+
+/** この書き方だとurl参照して行けそうだけど、リンク先が503で死亡
+    var viewer = new Cesium.Viewer('cesium');
+    var terrainProvider = new Cesium.CesiumTerrainProvider({
+        url : '//assets.agi.com/stk-terrain/world'
+    });
+    viewer.terrainProvider = terrainProvider;
+ */
+
+ /*** maptiler cloud を利用した場合 */
+// var viewer = new Cesium.Viewer('cesium');
+// viewer.terrainProvider = new Cesium.CesiumTerrainProvider({
+//   url: 'https://maps.tilehosting.com/data/terrain-quantized-mesh/?key=QrLkKggvgrAi6u8gjhzQ#' // get your own key at https://cloud.maptiler.com/
+// });
+
+
+// [PNG標高タイルTerrainProvider](https://gsj-seamless.jp/labs/elev2/tools/terrainProvider.html) を参照
+// 結果：エラー表示された
+  // viewer.scene.terrainProvider = new Cesium.PngElevationTileTerrainProvider();
+  // new Cesium.PngElevationTileTerrainProvider(  )
+
+
+// var viewer = new Cesium.Viewer("cesium");
 
   // 最初から日本を表示させる
   // viewer.camera.setView({
@@ -94,8 +124,8 @@ viewer.camera.flyTo({
 //   })
 // );
 
-var tileset =viewer.dataSources.add(Cesium.KmlDataSource.load("./KML/buffetthawaiitour.kmz"));
+// var tileset =viewer.dataSources.add(Cesium.KmlDataSource.load("./KML/buffetthawaiitour.kmz"));
 
-viewer.zoomTo(tileset)
+// viewer.zoomTo(tileset)
 }());
 
