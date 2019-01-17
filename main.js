@@ -6,6 +6,7 @@
 
   // 公式だと 'container' と書かれてるけど、それだと動作しなかった。
   // 参照 [https://cesium.com/content/cesium-world-terrain/]
+  // これがデフォルト cesium側のtrrain プロバイダー利用 地形データも対応してるみたい。建物はなくていいのか。
   var viewer = new Cesium.Viewer('cesium', {
     terrainProvider : Cesium.createWorldTerrain({
       requestWaterMask : true,
