@@ -4,129 +4,121 @@
   // トークンは t-ezaki@sensyn-robotics.com アカウント作成後、https://cesium.com/ にて取得
   Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMmI1ZjAzNi02MzhhLTRlMDAtODczNi01ZjhlMmM2YjZlNmMiLCJpZCI6NjgwNiwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0NzUyOTE4MX0.T4ABgbi_EFC-fCFaoNoCSq79oLRXQrHEfnjdeBvWA2E';
 
-  // 公式だと 'container' と書かれてるけど、それだと動作しなかった。
+  // 公式だと 'container' と書かれてるけど、それだと動作しなかった。'cesium' でおk
   // 参照 [https://cesium.com/content/cesium-world-terrain/]
   // これがデフォルト cesium側のtrrain プロバイダー利用 地形データも対応してるみたい。建物はなくていいのか。
-  var viewer = new Cesium.Viewer('cesium', {
-    terrainProvider : Cesium.createWorldTerrain({
-      requestWaterMask : true,
-      requestVertexNormals : true
-    })
-  });
 
-/** この書き方だとurl参照して行けそうだけど、リンク先が503で死亡
-    var viewer = new Cesium.Viewer('cesium');
-    var terrainProvider = new Cesium.CesiumTerrainProvider({
-        url : '//assets.agi.com/stk-terrain/world'
-    });
-    viewer.terrainProvider = terrainProvider;
+
+/**
+ * 緯度経度をマウスオーバー時に表示する
  */
 
- /*** maptiler cloud を利用した場合 */
-// var viewer = new Cesium.Viewer('cesium');
-// viewer.terrainProvider = new Cesium.CesiumTerrainProvider({
-//   url: 'https://maps.tilehosting.com/data/terrain-quantized-mesh/?key=QrLkKggvgrAi6u8gjhzQ#' // get your own key at https://cloud.maptiler.com/
-// });
+//デフォルトカメラ位置の登録
+var extent = Cesium.Rectangle.fromDegrees(122, 20, 154, 46);
+Cesium.Camera.DEFAULT_VIEW_RECTANGLE = extent;
+Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 
+//Cesium地図ビューワの作成
+var viewer = new Cesium.Viewer('cesium');
 
-// [PNG標高タイルTerrainProvider](https://gsj-seamless.jp/labs/elev2/tools/terrainProvider.html) を参照
-// 結果：エラー表示された
-  // viewer.scene.terrainProvider = new Cesium.PngElevationTileTerrainProvider();
-  // new Cesium.PngElevationTileTerrainProvider(  )
-
-
-// var viewer = new Cesium.Viewer("cesium");
-
-  // 最初から日本を表示させる
-  // viewer.camera.setView({
-  //   destination: Cesium.Cartesian3.fromDegrees(138, 30, 3000000),
-  //   orientation: {
-  //     heading: 0, // 水平方向の回転度（ラジアン）
-  //     pitch: -1.3, // 垂直方向の回転度（ラジアン） 上を見上げたり下を見下ろしたり
-  //     roll: 0
-  //   }
-  // });
-
-  // KMLを表示させてみる例。your.kml を表示させたいKMLへのパスに変えるだけ。
-  // viewer.dataSources.add(Cesium.KmlDataSource.load("your.kml"));
-
-/***
-  var point = viewer.entities.add({
-    name:"福井市", //レイヤ名
-    description:"ここは福井市です。",　//レイヤの説明
-      position : Cesium.Cartesian3.fromDegrees(136.223554,36.061957,0), //経度,緯度,高さ
-      point : {
-          pixelSize : 10, //ポイントのサイズ
-          color : Cesium.Color.BLUE //ポイントの色
-      }
-  });
-  viewer.zoomTo(viewer.entities);　//レイヤにズーム
-***/
-/** ラインを追加する
-  var redLine = viewer.entities.add({
-    name:"九頭竜川",
-    description:"ここは九頭竜川です。",　
-    polyline : {
-        positions : Cesium.Cartesian3.fromDegreesArrayHeights([136.137600,36.218795,0,
-          136.146183,36.210070,0,
-          136.147385,36.197465,0,
-          136.155109,36.191923,0,
-          136.157513,36.188183,0,
-          136.154938,36.182364,0,
-          136.146870,36.175574,0]),
-        width : 5,
-        material : Cesium.Color.RED,
+//マウスに追従するラベルの設置
+var entity = viewer.entities.add({
+    label: {
+        show: false,
+        showBackground: true,
+        font: '14px monospace',
+        horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+        verticalOrigin: Cesium.VerticalOrigin.TOP,
+        pixelOffset: new Cesium.Cartesian2(15, 0)
     }
 });
 
+/*
+ * マウス移動のイベントリスナーを設置
+ */
+var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+handler.setInputAction(
+    function(movement) {
+        var cartesian = viewer.camera.pickEllipsoid(movement.endPosition, viewer.scene.globe.ellipsoid);
+        //マウスが地球上にあることを
+        if (cartesian) {
+            //位置情報を管理するオブジェクトcartographicを取得
+            var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+            //緯度経度を小数点10桁で取得
+            var lon = Cesium.Math.toDegrees(cartographic.longitude).toFixed(5);
+            var lat = Cesium.Math.toDegrees(cartographic.latitude).toFixed(5);
+
+            entity.position = cartesian;
+            entity.label.show = true;
+            var mesh = lonlat2jmesh(lon, lat);
+            if (!mesh) {
+                mesh = "範囲外！"
+            }
+            entity.label.text = 'Lon: ' + lon + '\nLat: ' + lat +
+                '\nJAPAN MESH: ' + mesh;
+
+        } else {
+            console.log('地球外！！');
+            entity.label.show = false;
+        }
+    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+/*
+ * Click event 
+ */
+viewer.canvas.addEventListener('click',
+    function(e) {
+        var mousePosition = new Cesium.Cartesian2(e.clientX, e.clientY);
+        var ellipsoid = viewer.scene.globe.ellipsoid;
+        var cartesian = viewer.camera.pickEllipsoid(mousePosition, ellipsoid);
+        if (cartesian) {
+            //位置情報を管理するオブジェクトcartographicを取得
+            var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+            //緯度経度を小数点10桁で取得
+            var lon = Cesium.Math.toDegrees(cartographic.longitude).toFixed(5);
+            var lat = Cesium.Math.toDegrees(cartographic.latitude).toFixed(5);
+            entity.position = cartesian;
+            entity.label.show = true;
+            var mesh = lonlat2jmesh(lon, lat);
+            if (!mesh) {
+                mesh = "範囲外！"
+            }
+            //コンソールにひっそり
+            console.log(lon + ' / ' + lat + ' ' + mesh);　
+        }
+    }, false);
+
+
+/**
+ *  3次メッシュを算出する関数
+ * @param  <Number>  lon (required) 経度 122度以上154度未満
+ * @param  <Number>  lat (required) 緯度 20度以上46度未満
+ * @return <Number>
+ **/
+function lonlat2jmesh(lon, lat) {
+
+    if (lat >= 20 && lat < 46 && lon >= 122 && lon < 154) {
+
+        var p = Math.floor(lat * 60 / 40);
+        var a = (lat * 60) % 40;
+        var q = Math.floor(a / 5);
+        var b = a % 5;
+        var r = Math.floor(b * 60 / 30);
+
+        var u = Math.floor(lon - 100);
+        var f = lon - 100 - u;
+        var v = Math.floor((f * 3600) / (7 * 60 + 30));
+        var g = (f * 3600) % (7 * 60 + 30);
+        var w = Math.floor(g / 45);
+
+        var jmesh = p + "" + u + "" + q + "" + v + "" + r + "" + w;
+        return jmesh;
+    } else {
+        return null;
+    }
+}
+
 viewer.zoomTo(viewer.entities);
-**/
 
-/**ポリゴンを追加する ←できないな、これ
-var polygon = viewer.entities.add({
-  name:"福井県庁",
-  description:"ここは福井県庁です。",　
-  polygon : {
-      hierarchy : Cesium.Cartesian3.fromDegreesArrayHeights([
-        136.220266, 36.066095,0,
-        136.220287, 36.063848,0,
-        136.221542, 36.063857,0,
-        136.222444, 36.063978,0,
-        136.222529, 36.064239,0,
-        136.223495, 36.064516,0,
-        136.223238, 36.065704,0,
-        136.223034, 36.065722,0,
-        136.222948, 36.066190,0,
-        136.222315, 36.066138,0,
-        136.221435,36.066216,0]),
-      extrudedHeight: 333.0,
-      width : 5,
-      material : Cesium.Color.RED.withAlpha(0.5),
-      outline : true,
-      outlineColor : Cesium.Color.BLACK
-  }
-});
-*/
-
-/**視点を変更する 
-viewer.camera.flyTo({   
-  destination : Cesium.Cartesian3.fromDegrees(136.194763, 36.047711, 45000.0)});
-*/
-/**サンプルKMZデータで描画 */
-// var tileset = viewer.scene.primitives.add(
-//   new Cesium.Cesium3DTileset({
-//       url: Cesium.IonResource.fromAssetId(13995)
-//   })
-// );
-
-// var tileset = viewer.scene.primitives.add(
-//   new Cesium.Cesium3DTileset({
-//       url: Cesium.IonResource.fromAssetId(14002)
-//   })
-// );
-
-// var tileset =viewer.dataSources.add(Cesium.KmlDataSource.load("./KML/buffetthawaiitour.kmz"));
-
-// viewer.zoomTo(tileset)
 }());
 
