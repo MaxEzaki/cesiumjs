@@ -106,13 +106,46 @@ var handler,
     longitude,
     latitude,
     pinBuilder = new Cesium.PinBuilder(),
-    // promise,
     height,
     handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas),
     pin_position,
     scene = viewer.scene,
-    dragging = false
+    dragging = false,
+    arr_poi=Array()
+    /**
+    // JSON 形式で描画
+    yellowPin = [{
+        "id" : "document",
+        "name" : "CZML Point",
+        "version" : "1.0"
+    }, {
+        "id" : "point 1",
+        "name": "point",
+        "billboard": {
+            "scale": 1
+        },
+        "position" : {
+            // 富士山山頂（経度、緯度、標高）
+            "cartographicDegrees" : [138.72711666666666, 35.36564166666666, 3800]
+        },
+        "point": {
+            "color": {
+                "rgba": [255, 255, 255, 255]
+            },
+            "outlineColor": {
+                "rgba": [255, 0, 0, 255]
+            },
+            "outlineWidth" : 4,
+            "pixelSize": 20
+        }
+    }]
+     */
     ;
+/**
+ *  JSON形式にやってみるテスト
+var dataSourcePromise = Cesium.CzmlDataSource.load(yellowPin);
+viewer.dataSources.add(dataSourcePromise);
+ */
 
 /**
  * 左ダブルクリック時アクション
@@ -127,6 +160,11 @@ handler.setInputAction(
 
             console.log( `経度：${longitude} \n緯度：${latitude} \n標高：${height}` );
             putPOI(longitude,latitude,height);
+            // POI を配列に格納する
+            // console.log(arr_poi);
+            arr_poi.push(Cesium.Cartesian3.fromDegrees(longitude,latitude,height));
+            console.log(arr_poi);
+            addLineBetweenPoi(arr_poi);
 
             // sampleHeights();
             // console.log(promise);
@@ -148,12 +186,16 @@ handler.setInputAction(
         var pickedObject = scene.pick(click.position);
         // console.log(pickedObject);
         // console.log(Cesium.defined(pickedObject));
-        // console.log(pickedObject.id);
-        console.log(yellowPin.billboard);
+        // console.log(pickedObject.id._id);
+        // console.log(yellowPin[1].id);
         // yellowPin = 富士山登頂に置いてるPIN。このインスタンスは動的に生成させたほうがよろしいね。
         if (Cesium.defined(pickedObject) && (pickedObject.id === yellowPin)) {
+        // JSON形式のでやってみた結果。ただし、ドラッグドロップが機能しないのでこれはなし。これ自体を飛行させるっていうのには向いてるかもな。
+        // if (Cesium.defined(pickedObject) && (pickedObject.id._id === yellowPin[1].id)) {
+            
 console.log(`動かすよ！`);
             yellowPin.billboard.scale = 1.2;
+            // yellowPin[1].billboard.scale = 1.2;
             dragging = true;
             scene.screenSpaceCameraController.enableRotate = false;
         }
@@ -168,6 +210,8 @@ console.log(`LEFT_DOWN>>>ドラッグ状況：${dragging}`);
 handler.setInputAction(
     function() {
         yellowPin.billboard.scale = 1;
+        // yellowPin[1].billboard.scale = 1;
+        
         dragging = false;
         scene.screenSpaceCameraController.enableRotate = true;
 console.log(`LEFT_UP>>>ドラッグ状況：${dragging}`);
@@ -179,6 +223,7 @@ console.log(`LEFT_UP>>>ドラッグ状況：${dragging}`);
  * マウスオーバー時＞＞経度緯度取得
  * クリックだと取得できない
  * 高さの取得についての参照先[https://groups.google.com/forum/#!topic/cesium-dev/kDIs_j9zKNI]
+ * ドラッグ＆ドロップについて参照先[https://analyticalgraphicsinc.github.io/cesium-google-earth-examples/examples/pinDrag.html]
  */
 handler.setInputAction(
     function(movement) {
@@ -186,19 +231,20 @@ handler.setInputAction(
         //マウスが地球上にあることを
         if (cartesian) {
             //位置情報を管理するオブジェクトcartographicを取得
-            var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+            // var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
             //緯度経度を小数点10桁で取得
-            // longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(5);
-            // latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(5);
-
-            longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(10);
-            latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(10);
+            // longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(10);
+            // latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(10);
 
             var ray = viewer.camera.getPickRay(movement.endPosition);
             var position = viewer.scene.globe.pick(ray, viewer.scene);
             if (Cesium.defined(position)) {
+                //位置情報を管理するオブジェクトcartographicを取得
                 var cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
                 height = cartographic.height
+                //緯度経度を小数点10桁で取得
+                longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(10);
+                latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(10);
             }
             // console.log('リアルタイム表示＝＝＝＝＝＝＝＝＝＝');
             // console.log( `経度：${longitude} \n緯度：${latitude} \n標高：${height}` );
@@ -213,7 +259,15 @@ handler.setInputAction(
             // ドラッグ処理
             if (dragging) {
 console.log(`ドラッグしてるよ!!`);
-                yellowPin.position = viewer.camera.pickEllipsoid(movement.endPosition);
+console.log(Cesium.Cartesian3.fromDegrees(longitude,latitude,height));
+
+                // movement.endPosition がウィンドウの位置を示してる？
+                // 2Dだとviewer.camera.pickEllipsoid()使ったほうがよさげ。3Dだとなぜか消える。
+                // yellowPin.position = viewer.camera.pickEllipsoid(movement.endPosition);
+                yellowPin.position = Cesium.Cartesian3.fromDegrees(longitude,latitude,height);
+
+                console.log(`ここに置くで〜！！`);
+                console.log(yellowPin.position);
             }
 
         } else {
@@ -268,11 +322,10 @@ var greenPin = viewer.entities.add({
 /**
  * 富士山の登頂
  */
-var yellowPin = viewer.entities.add({
+ var yellowPin = viewer.entities.add({
     name : 'Blank yellow pin',
-    // position : Cesium.Cartesian3(-3915852.0, 3436878.0, 3673245.0),
     position : Cesium.Cartesian3.fromDegrees(138.72711666666666, 35.36564166666666, 3800.000),
-    
+
     billboard : {
         scale: 1
     },
@@ -285,6 +338,7 @@ var yellowPin = viewer.entities.add({
         outlineWidth : 3
     }
 });
+
 
 /**
  * 標識表示
@@ -381,14 +435,29 @@ console.log(clampedCartesians[i]);
     });
 }
 
+/**
+ * POI同士を線で繋ぐ
+ */
+function addLineBetweenPoi(arg_arr_position){
 
+    viewer.entities.add({
+        polyline : {
+            positions : arg_arr_position,
+            followSurface : false,
+            width : 2,
+            material : new Cesium.PolylineOutlineMaterialProperty({
+                color : Cesium.Color.RED
+            }),
+            depthFailMaterial : new Cesium.PolylineOutlineMaterialProperty({
+                color : Cesium.Color.RED
+            })
+        }
+    });
+}
 
-//Since some of the pins are created asynchronously, wait for them all to load before zooming/
-// Cesium.when.all([bluePin], function(pins){
-//     viewer.zoomTo(pins);
-// });
-
+// 初期表示位置
 viewer.zoomTo(yellowPin);
+// viewer.zoomTo(dataSourcePromise);
 
 }());
 
