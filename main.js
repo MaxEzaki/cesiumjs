@@ -108,10 +108,43 @@ var handler,
     pinBuilder = new Cesium.PinBuilder(),
     height,
     handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas),
-    pin_position,
+    // pin_position,
+    poi_info = Array(),
     scene = viewer.scene,
     dragging = false,
-    arr_poi=Array()
+    arr_poi=Array(),
+    // arr_degrees = Array(),
+
+    czml_polyline =  [{
+        "id" : "document",
+        "name" : "CZML Geometries: Polyline",
+        "version" : "1.0"
+    }, {
+        "id" : "redLine",
+        "name" : "Red line clamped to terain",
+        "polyline" : {
+            "positions" : {
+                "cartographicDegrees" : []
+            },
+            "material" : {
+                "solidColor" : {
+                    "color" : {
+                        "rgba" : [255, 0, 0, 255]
+                    }
+                }
+            },
+            // "followSurface" : false,
+            "width" : 5,
+            // "clampToGround" : true
+        }
+    }],
+    poi_heigth_line = [{
+        "id" : "document",
+        "name" : "CZML Geometries POI Height Line: Polyline",
+        "version" : "1.0"
+    },{}
+]
+
     /**
     // JSON 形式で描画
     yellowPin = [{
@@ -141,6 +174,7 @@ var handler,
     }]
      */
     ;
+
 /**
  *  JSON形式にやってみるテスト
 var dataSourcePromise = Cesium.CzmlDataSource.load(yellowPin);
@@ -159,12 +193,26 @@ handler.setInputAction(
             console.log('通るよ001');
 
             console.log( `経度：${longitude} \n緯度：${latitude} \n標高：${height}` );
+
+            // 高さの初期値に120m加算する
+            height = height + 120
+
+
             putPOI(longitude,latitude,height);
             // POI を配列に格納する
             // console.log(arr_poi);
             arr_poi.push(Cesium.Cartesian3.fromDegrees(longitude,latitude,height));
-            console.log(arr_poi);
-            addLineBetweenPoi(arr_poi);
+            // czml_line.polyline.positions.cartographicDegrees.push(longitude).push(latitude).push(height);
+            var arr_degrees = [Number(longitude),Number(latitude),height];
+console.log(arr_degrees);
+            // czml_polyline[1].polyline.positions.cartographicDegrees.push(arr_degrees);
+            // 破壊的に緯度経度高度を次々と追加していく
+            // サンプル参照[https://cesiumjs.org/Cesium/Apps/Sandcastle/?src=CZML%20Polyline.html&label=CZML]
+            Array.prototype.push.apply(czml_polyline[1].polyline.positions.cartographicDegrees, arr_degrees);
+console.log(czml_polyline[1].polyline.positions.cartographicDegrees);
+            // console.log(arr_poi);
+            // addLineBetweenPoi(arr_poi);
+            addLineBetweenPoi();
 
             // sampleHeights();
             // console.log(promise);
@@ -233,7 +281,7 @@ handler.setInputAction(
             //位置情報を管理するオブジェクトcartographicを取得
             // var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
             //緯度経度を小数点10桁で取得
-            // longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(10);
+            // longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(10);toDegrees
             // latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(10);
 
             var ray = viewer.camera.getPickRay(movement.endPosition);
@@ -266,8 +314,8 @@ console.log(Cesium.Cartesian3.fromDegrees(longitude,latitude,height));
                 // yellowPin.position = viewer.camera.pickEllipsoid(movement.endPosition);
                 yellowPin.position = Cesium.Cartesian3.fromDegrees(longitude,latitude,height);
 
-                console.log(`ここに置くで〜！！`);
-                console.log(yellowPin.position);
+console.log(`ここに置くで〜！！`);
+console.log(yellowPin.position);
             }
 
         } else {
@@ -363,11 +411,65 @@ function putPOI(arg_longitude, arg_latitude, arg_height){
         console.log('ピン止められないよ！');
         return;
     }
+    var i = poi_info.length,
+        num = poi_info.length + 1,
+        tmpPoiInfo = {
+            "id":num,
+            "pin":{
+                "name": "POI pin_" + ( '000' + num ).slice( -3 )
+            },
+            "height":{
+                "name": "POI height_" + ( '000' + num ).slice( -3 )
+            }
+        },
+        tmpPoiHeightLine={
+            "id":"",
+            "name":"",
+            // "polyline":{
+            //     "positions":{
+            //         "cartographicDegrees":[Number(arg_longitude), Number(arg_latitude), arg_height]
+            //     },
+            //     "material":{
+            //         "solidColor":{
+            //             "color":[255, 165, 0, 255]
+            //         }
+            //     },
+            //     "width":5
+            // }
+            "position" : {
+                "cartographicDegrees":[Number(arg_longitude), Number(arg_latitude), arg_height]
+            },
+            "ellipse" : {
+                "semiMinorAxis" : 3.0,
+                "semiMajorAxis" : 3.0,
+                "extrudedHeight" : arg_height,
+                "material" : {
+                    "solidColor" : {
+                        "color" : {
+                            "rgba" : [255, 165, 0, 255]
+                        }
+                    }
+                },
+                // "outline" : true
+            }
+        };
+
+        // 縦線の設定
+        tmpPoiHeightLine.id   = tmpPoiInfo.id;
+        tmpPoiHeightLine.name = tmpPoiInfo.height.name;
+
+// console.log(tmpPoiInfo);
+
+    // POI情報追加
+    poi_info.push(tmpPoiInfo);
+// console.log(poi_info);
+
 console.log(`ここにピンおくよ！！！`);
 console.log( `経度：${arg_longitude} \n緯度：${arg_latitude} \n標高：${arg_height}` );
-    viewer.entities.add({
-        name : 'POI pin',
 
+    viewer.entities.add({
+        // name : 'POI pin',
+        name : poi_info[i].pin.name,
         position : Cesium.Cartesian3.fromDegrees(arg_longitude, arg_latitude, arg_height),
         point : {
             pixelSize : 8,
@@ -375,25 +477,17 @@ console.log( `経度：${arg_longitude} \n緯度：${arg_latitude} \n標高：${
             outlineColor : Cesium.Color.YELLOW,
             outlineWidth : 3
         }
-/***
-        // 指定の場所にポイントを設置
-        // position : Cesium.Cartesian3.fromDegrees(-112.13315, 36.14703, 2200),
-        position: Cesium.Cartesian3.fromDegrees(arg_longitude, arg_latitude, arg_height),
-        billboard : {
-            show : false,
-            image : pinBuilder.fromColor(Cesium.Color.ROYALBLUE, 48).toDataURL(),
-            verticalOrigin : Cesium.VerticalOrigin.BOTTOM
-        },
-        point : {
-            pixelSize : 20,
-            color : Cesium.Color.ROYALBLUE,
-            outlineWidth: 2,
-            outlineColor: Cesium.Color.WHITE
-        }
- */
-
     });
 
+    // ピンおいたらそこから地面まで線を引く
+    poi_heigth_line[num]   = tmpPoiHeightLine;
+
+    var dataSourcePoiHeigthLine = Cesium.CzmlDataSource.load(poi_heigth_line);
+    viewer.dataSources.add(dataSourcePoiHeigthLine);
+
+    // poi_heigth_line[1].polyline.positions.cartographicDegrees = [arg_longitude, arg_latitude, arg_height];
+    // poi_heigth_line[1].polyline.material.solidColor.color = [255, 165, 0, 255];
+    // poi_heigth_line[1].polyline.width = 5;
 }
 
 /**
@@ -439,20 +533,33 @@ console.log(clampedCartesians[i]);
  * POI同士を線で繋ぐ
  */
 function addLineBetweenPoi(arg_arr_position){
+console.log('addLineBetweenPoi==================');
+// やっぱ動的になるということ踏まえるとczmlでやった方がいいのかしらね
+// そうなってくるとxyzを緯度経度に変換する処理が必要。cesiumjsでそれがあるか調べる必要あり
 
+var dataSourcePromise = Cesium.CzmlDataSource.load(czml_polyline);
+viewer.dataSources.add(dataSourcePromise);
+
+/**
     viewer.entities.add({
+
         polyline : {
             positions : arg_arr_position,
             followSurface : false,
-            width : 2,
+            width : 5,
             material : new Cesium.PolylineOutlineMaterialProperty({
                 color : Cesium.Color.RED
             }),
-            depthFailMaterial : new Cesium.PolylineOutlineMaterialProperty({
-                color : Cesium.Color.RED
-            })
+            // clampToGround : true,
+            // classificationType: Cesium.ClassificationType.CESIUM_3D_TILE
+            // depthFailMaterial : new Cesium.PolylineOutlineMaterialProperty({
+            //     color : Cesium.Color.GREEN
+            // })
         }
+
     });
+ */
+
 }
 
 // 初期表示位置
